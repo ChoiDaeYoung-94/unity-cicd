@@ -1,15 +1,18 @@
 name: FeatureCI
 
 on:
-  pull_request_review:
-    types: [submitted, edited]
+  pull_request:
+    types: [opened]
+    branches:
+    - 'dev'
+  issue_comment:
     branches:
     - 'dev'
 
 jobs:
   AndroidBuild:
     if: ${{ github.event.review.state == 'commented' && 
-      (contains(github.event.review.body, 'build-android') || contains(github.event.review.body, 'build-all')) }}
+      (contains(github.event.comment.body, 'build-android') || contains(github.event.comment.body, 'build-all')) }}
     runs-on: ubuntu-latest
     env:
       AND_REPO_NAME: AndroidRepo
