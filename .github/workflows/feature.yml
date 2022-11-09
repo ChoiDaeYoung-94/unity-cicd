@@ -1,17 +1,40 @@
 name: FeatureCI
 
 on:
-  push:
+  pull_request:
     branches:
-    - 'feature/**'
+    - 'dev'
+workflow_dispatch:
 
 jobs:
-  check-bats-version:
+  AndroidBuild:
+    if: ${{ github.event.review.state == 'commented' && 
+    (contains(github.event.review.body, 'build-android') || contains(github.event.review.body, 'build-all')) }}
     runs-on: ubuntu-latest
+    env:
+      AND_REPO_NAME: AndroidRepo
+      AND_LOG_PATH: ./AndroidRepo/AndroidBuildLog.txt
+      AND_BUILD_PATH: ./AndroidRepo/Build/Android
+      AND_PACKAGE_NAME: com.AeDeong.CICD
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout repo
+        uses: actions/checkout@v2.4.0
         with:
-          node-version: '14'
-      - run: npm install -g bats
-      - run: bats -v
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+          path: ${{ env.AND_REPO_NAME }}
+          clean: false
+        
+      - name: Remove build folder, log file
+        run: |
+          rm -rf $AND_BUILD_PATH
+          rm -f $AND_LOG_PATH
+
+      - name: Create build folder
+        run: mkdir -p $AND_BUILD_PATH
+
+      - name: Unity build
+        run: $UNITY_APP_PATH -batchmode -quit -logFile $AND_LOG_PATH -buildTarget Android -projectPath $GITHUB_WORKSPACE/$AND_REPO_NAME -executeMethod BuildScript.BuildAndroid -keystoreName $AND_KEYSTORE_PATH
+    
+      - name: Print build log
+        run: cat $AND_LOG_PATH
