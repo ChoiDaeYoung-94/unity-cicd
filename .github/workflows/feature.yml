@@ -8,6 +8,7 @@ on:
   issue_comment:
     branches:
     - 'dev'
+workflow_dispatch:
 
 jobs:
   AndroidBuild:
