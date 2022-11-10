@@ -18,7 +18,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2.4.0
         with:
-          token: ${{ secrets.GIT_ACCESS_TOKEN }}
           path: ${{ env.AND_REPO_NAME }}
           clean: false
         
