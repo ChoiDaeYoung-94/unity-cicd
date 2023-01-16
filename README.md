@@ -1,10 +1,16 @@
-# UnityCICD
-CICD Test repository
+# About
 
-## Summary
+unity CI/CD 관련 스크립트, 가이드 관리
+
+## Unity project Settings
 
 ## Build
 
-## Test
+| platform  | output   |
+| --------- | -------- |
+| AOS       | apk, aab |
+| iOS       |          |
 
-## Deploy
+### Command Scenario
+
+### Github Action Scenario
