@@ -11,17 +11,17 @@ using UnityEditor.Build.Reporting;
 public class BuildScript : MonoBehaviour, IPostprocessBuildWithReport
 {
     // AOS build시 필요한 data - 기입 필요
-	// project settings - player - product name
+    // project settings - player - product name
     private const string PRODUCT_NAME = "";
-	// project settings - player - package name
+    // project settings - player - package name
     private const string IDENTIFIER = "";
-	// keystore path
+    // keystore path
     private const string KEYSTORE_NAME = "";
-	// keystore password
+    // keystore password
     private const string KEYSTORE_PASS = "";
-	// keyalias name
+    // keyalias name
     private const string KEYALIAS_NAME = "";
-	// keyalias password
+    // keyalias password
     private const string KEYALIAS_PASS = "";
 
     // version 자동화 관련
@@ -40,7 +40,7 @@ public class BuildScript : MonoBehaviour, IPostprocessBuildWithReport
 
     // build 완료 후 에디터 종료 위함
     private const string CHECK_BUILD = "Build/checkedBuilding.txt";
-    
+
     [MenuItem("Build/AOS/APK")]
     static void BuildAOSAPK() => SetAOS(form: CHECK_AOS_SETTING_APK);
     [MenuItem("Build/AOS/AAB")]
@@ -53,8 +53,6 @@ public class BuildScript : MonoBehaviour, IPostprocessBuildWithReport
     /// <param name="form"></param>
     static void SetAOS(string form)
     {
-        FileSettings();
-
         StreamWriter file = File.CreateText(form);
         file.Close();
 
@@ -119,17 +117,6 @@ public class BuildScript : MonoBehaviour, IPostprocessBuildWithReport
             Debug.Log("AOSBuild failed");
     }
     #endregion
-
-    /// <summary>
-    /// build 관련 폴더 및 파일 정리
-    /// </summary>
-    static private void FileSettings()
-    {
-        if (Directory.Exists("Build"))
-            Directory.Delete("Build", true);
-
-        Directory.CreateDirectory("Build");
-    }
 
     /// <summary>
     /// version 자동화 관련

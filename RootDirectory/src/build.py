@@ -1,4 +1,5 @@
 import os
+import shutil;
 import click
 import git
 
@@ -31,7 +32,15 @@ def main(user_name, project_name, branch, unity_app_path, buildpc_projects_path)
 def build():
     click.echo("AOS Build AAB, APK")
 
+    click.echo("Clean Build folder")
+    if os.path.isdir(f"{project_path}/Build"):
+        shutil.rmtree(f"{project_path}/Build")
+    os.mkdir(f"{project_path}/Build")
+
+    click.echo("Build AAB")
     os.system(f"{unity_path} -buildTarget Android -projectPath {project_path} -executeMethod BuildScript.BuildAOSAAB")
+    
+    click.echo("Build APK")
     os.system(f"{unity_path} -buildTarget Android -projectPath {project_path} -executeMethod BuildScript.BuildAOSAPK")
 
 if __name__ == '__main__':
