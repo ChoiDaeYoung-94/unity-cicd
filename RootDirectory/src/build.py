@@ -14,7 +14,7 @@ def main(user_name, project_name, branch, unity_app_path, buildpc_projects_path)
     global project_path
     global unity_path
 
-    project_url = f"https://github.com/{user_name}}/{project_name}.git"
+    project_url = f"https://github.com/{user_name}/{project_name}.git"
     project_path = f"{buildpc_projects_path}/{project_name}"
     unity_path = unity_app_path
 
@@ -31,11 +31,8 @@ def main(user_name, project_name, branch, unity_app_path, buildpc_projects_path)
 def build():
     click.echo("AOS Build AAB, APK")
 
-    os.system(
-        f"{unity_path} -buildTarget Android -projectPath {project_path} -executeMethod BuildScript.BuildAOSAAB")
-    os.system(
-        f"{unity_path} -buildTarget Android -projectPath {project_path} -executeMethod BuildScript.BuildAOSAPK")
-
+    os.system(f"{unity_path} -buildTarget Android -projectPath {project_path} -executeMethod BuildScript.BuildAOSAAB")
+    os.system(f"{unity_path} -buildTarget Android -projectPath {project_path} -executeMethod BuildScript.BuildAOSAPK")
 
 if __name__ == '__main__':
     main()
