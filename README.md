@@ -53,6 +53,8 @@ build 추출물은 Project root/Build/AOS, Project root/Build/iOS 에 위치한�
 
 ### Unity Scenario
 
+시작 전 게임 프로젝트의 root 경로에 Build 폴더를 만든 뒤 진행한다.
+
 - apk
   - Unity Menu - Build - AOS - APK
 - aab
