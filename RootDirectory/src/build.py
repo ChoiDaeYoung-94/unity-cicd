@@ -1,5 +1,5 @@
 import os
-import shutil;
+import shutil
 import click
 import git
 
@@ -36,7 +36,7 @@ def build():
     if os.path.isdir(f"{project_path}/Build"):
         shutil.rmtree(f"{project_path}/Build")
     os.mkdir(f"{project_path}/Build")
-    
+
     click.echo("Create build log file")
     buildLogPath = f"{project_path}/Build/buildLog.txt"
     buildLogfile = open(buildLogPath, 'w')
@@ -44,28 +44,28 @@ def build():
 
     click.echo("Build AAB - wait for build!!!!!!!!!!!!!!")
     os.system(f"{unity_path} -logFile {buildLogPath} -buildTarget Android -projectPath {project_path} -executeMethod BuildScript.BuildAOSAAB")
-    
+
     output = os.listdir(f"{project_path}/Build/AOS")
     output_aab = [file for file in output if file.endswith(".aab")]
     if output_aab.count != 0:
         click.echo("AAB build success")
     else:
-        click.echo(f"AAB build failed\nPlease see this log file > {buildLogfile}")
+        click.echo(f"AAB build failed\nPlease see this log file > {buildLogPath}")
         return
 
     click.echo("Build APK - wait for build!!!!!!!!!!!!!!")
     os.system(f"{unity_path} -logFile {buildLogPath} -buildTarget Android -projectPath {project_path} -executeMethod BuildScript.BuildAOSAPK")
-    
+
     output = os.listdir(f"{project_path}/Build/AOS")
     output_aab = [file for file in output if file.endswith(".apk")]
     if output_aab.count != 0:
         click.echo("APK build success")
     else:
-        click.echo(f"APK build failed\nPlease see this log file > {buildLogfile}")
+        click.echo(f"APK build failed\nPlease see this log file > {buildLogPath}")
         return
-    
-    os.system(f"cat {buildLogPath}")
+
     click.echo("AAB, APK build success")
+
 
 if __name__ == '__main__':
     main()
