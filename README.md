@@ -20,9 +20,17 @@ unity CI/CD 관련 스크립트, 가이드 관리
          - bundleVersionCode의 경우 게임프로젝트의 Google Console에서 App Bundle 탐색기의 버전 코드를 확인 후 최신 버전 코드를 입력하면 AOS에서 aab 빌드를 추출할 시 자동으로 1식 올라간다.
      - src
        - build.py ([참고](https://docs.unity3d.com/kr/2021.3/Manual/EditorCommandLineArguments.html))
-         - 본 repo의 guide로 세팅된 unity project일 경우 Github에서 받아 build를 추출하는 CLI이다.
-         - build.py를 사용하기 위해서 [python](https://www.python.org/downloads/)을 다운로드해야 한다.
-         - build.py는 [click](https://click.palletsprojects.com/en/8.1.x/quickstart/), [git](https://gitpython.readthedocs.io/en/stable/intro.html?highlight=pip%20install%20gitpython#installing-gitpython) package를 포함한다.
+         - 본 repo의 guide로 세팅된 unity project일 경우 Github에서 clone 받아 build를 추출하는 CLI이다.
+         - BuildPC(remote server)에서 사용 시 빌드 추출물을 Local로 받을 수 있다.
+         - build.py를 사용하기 위해서 필요한 package
+           - [python](https://www.python.org/downloads/)
+           - [click](https://click.palletsprojects.com/en/8.1.x/quickstart/)
+           - [git](https://gitpython.readthedocs.io/en/stable/intro.html?highlight=pip%20install%20gitpython#installing-gitpython)
+           - [paramiko](https://www.paramiko.org/installing.html)
+           - scp:
+           ```
+           pip install scp
+           ```
          - python build.py --help 를 통해 build.py의 각 매개변수의 내용을 확인할 수 있다.
        - Keystore_ex
          - BuildScript에서 keystore을 불러오는 경로를 예시로 들기 위해 있는 임시 파일이다.
@@ -40,7 +48,17 @@ unity CI/CD 관련 스크립트, 가이드 관리
       - Keystore_ex
         - 본인이 사용하고 있는 keystore 파일로 대체한다.
 
-## BuildPC settings
+## BuildPC(Remote Server) settings
+
+BuildPC는 기본적으로 본인의 게임 프로젝트가 본 repo와는 상관없이 빌드 될 수 있도록 세팅되어있어야 한다.
+
+### CLI Settings
+
+CLI는 본 repo에 있는 build.py 를 사용한다.
+
+1. 본 repo에 있는 build.py을 BuildPC에 다운로드한다.
+2. [About directory files](#About-directory-files)의 build.py 부분을 반드시 읽고 세팅한다.
+3. BuildPC(remote server), LocalPC를 SSH로 연결한다. [참고](https://learn.microsoft.com/ko-kr/windows-server/administration/openssh/openssh_install_firstuse)
 
 ## Build
 
@@ -65,5 +83,9 @@ build 추출물은 Project root/Build/AOS, Project root/Build/iOS 에 위치한�
 build.py를 통해 build 시 aab, apk 모두 빌드된다.
 
 terminal > python build.py > 매개변수 입력 > build
+
+**build.py 주의사항**
+- 매개변수 중 띄어쓰기가 포함될 경우 " or ' 로 묶어주어야 한다.
+- BuildPC가 아닌 LocalPC에서 사용할 경우 "Enter IPv4 of your pc" 부분을 입력할 때 Skip을 입력한다.
 
 ### Github Action Scenario
