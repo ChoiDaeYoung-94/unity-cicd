@@ -12,10 +12,10 @@ import git
 @click.option("--branch", prompt="Enter branch name", help="branch name (ex: main)")
 @click.option("--unity_app_path", prompt="Enter unity app path", help="https://docs.unity3d.com/kr/2021.3/Manual/EditorCommandLineArguments.html")
 @click.option("--buildpc_project_destination_path", prompt="Enter project destination path of buildpc", help="unity project destination path in buildpc")
-@click.option("--ip", prompt="Enter IPv4 of your pc", help="window > cmd > ipconfig, mac > terminal > ifconfig | grep inet")
-@click.option("--username", prompt="Enter username of your pc", help="window > cmd > whoami, mac > terminal > whoami")
-@click.option("--password", prompt="Enter password of your pc", help="password of your pc")
-@click.option("--path", prompt="Enter path to receive build output", help="path to receive build output")
+@click.option("--ip", help="window > cmd > ipconfig, mac > terminal > ifconfig | grep inet")
+@click.option("--username", help="window > cmd > whoami, mac > terminal > whoami")
+@click.option("--password", help="password of your pc")
+@click.option("--path", help="path to receive build output")
 def main(user_name, project_name, branch, unity_app_path, buildpc_project_destination_path, ip, username, password, path):
     global project_url
     global project_path
@@ -28,10 +28,13 @@ def main(user_name, project_name, branch, unity_app_path, buildpc_project_destin
     project_url = f"https://github.com/{user_name}/{project_name}.git"
     project_path = f"{buildpc_project_destination_path}/{project_name}"
     unity_path = unity_app_path
-    local_ip = ip
-    local_username = username
-    local_password = password
-    local_buildpath = path
+
+    local_ip = input(
+        "Enter IPv4 of your pc or \"skip\" if you use this on LocalPC: ")
+    if local_ip != "skip":
+        local_username = input("Enter username of your pc: ")
+        local_password = input("Enter password of your pc: ")
+        local_buildpath = input("Enter path to receive build output: ")
 
     if os.path.isdir(project_path) == False:
         click.echo(f"there is no project in {buildpc_project_destination_path} > clone {project_url}")
@@ -89,7 +92,7 @@ def build():
     sftp_client.put(f"{project_path}/Build", local_buildpath, recursive=True)
     sftp_client.close()
     ssh.close()
-    
+
     click.echo("Build complete")
 
 
