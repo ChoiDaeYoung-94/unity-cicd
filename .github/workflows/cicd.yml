@@ -1,0 +1,69 @@
+name: cicd
+on:
+  # main branch에 push 할 경우 작동 (trigger를 push로 했을 뿐 Github Action doc를 통해 다양한 trigger를 볼 수 있음)
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  # BuildPC의 UNITY_APP_PATH 참고 - https://docs.unity3d.com/kr/2021.3/Manual/EditorCommandLineArguments.html
+  UNITY_APP_PATH: "D:/Unity/2020.3.25f1/Editor/Unity.exe"
+
+  # Build 추출물이 나올 경로(AOS, IOS) + 프로젝트명 ex - D:/Documents/Builds/Incremental
+  BUILD_PATH: D:/Documents/01.Projects/04.Working/01.Unity_Projects/01.Builds/
+
+  # 프로젝트명 ex - Incremental
+  REPO_NAME: 
+
+jobs:
+  Checkout:
+    # 마지막 commit message에 ci skip이 없을 경우 작동하도록 함
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+
+    # 생성한 runner의 labels로 runner를 구분 참고 - https://docs.github.com/en/actions/using-jobs/choosing-the-runner-for-a-job
+    runs-on: [ self-hosted, buildpc ]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2.4.0
+        with:
+          token: ${{ secrets.GIT_ACCESS_TOKEN }}
+          path: ${{ env.REPO_NAME }}
+          clean: false
+          lfs: true
+          submodules: recursive
+
+  Android_Build:
+    needs: Checkout
+    # 생성한 runner의 labels로 runner를 구분 참고 - https://docs.github.com/en/actions/using-jobs/choosing-the-runner-for-a-job
+    runs-on: [ self-hosted, buildpc ]
+    env:
+      # build log 파일 경로 입력 ex - ./프로젝트명/Build/AndroidBuildLog.txt
+      AND_LOG_PATH: 
+
+      # AOS build 추출물 경로 입력 ex - ./프로젝트명/Build/Android
+      AND_BUILD_PATH: 
+
+    steps:
+      - name: Remove build folder, log file
+        run: |
+          rm -rf $AND_BUILD_PATH
+          rm -f $AND_LOG_PATH
+      - name: Create build folder
+        run: mkdir -p $AND_BUILD_PATH
+
+      - name: Unity build AAB
+        # 프로젝트명 주의, GITHUB_WORKSPACE - https://docs.github.com/ko/actions/learn-github-actions/variables#default-environment-variables
+        run: $UNITY_APP_PATH -logFile $AND_LOG_PATH -buildTarget Android -projectPath $GITHUB_WORKSPACE/프로젝트명 -executeMethod BuildScript.BuildAOSAAB
+
+      - name: Unity build APK
+        # 프로젝트명 주의
+        run: $UNITY_APP_PATH -logFile $AND_LOG_PATH -buildTarget Android -projectPath $GITHUB_WORKSPACE/프로젝트명 -executeMethod BuildScript.BuildAOSAPK
+
+      - name: Print build log
+        run: cat $AND_LOG_PATH
+
+      - name: Backup build
+        run: |
+          current_time=$(date "+%Y.%m.%d-%H.%M.%S")
+          mkdir -p $BUILD_PATH/$current_time
+          mv $AND_BUILD_PATH $BUILD_PATH/$current_time
