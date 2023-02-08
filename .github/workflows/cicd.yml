@@ -67,3 +67,14 @@ jobs:
           current_time=$(date "+%Y.%m.%d-%H.%M.%S")
           mkdir -p $BUILD_PATH/$current_time
           mv $AND_BUILD_PATH $BUILD_PATH/$current_time
+
+      # scp - https://github.com/appleboy/scp-action
+      - name: copy file via ssh key
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SCP_HOST }}
+          username: ${{ secrets.SCP_USERNAME }}
+          password: ${{ secrets.SCP_PASSWORD }}
+          port: 22
+          source: $BUILD_PATH
+          target: ${{ secrets.SCP_LOCAL_OUTPUT_PASS }}
