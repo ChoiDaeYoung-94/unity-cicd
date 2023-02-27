@@ -7,13 +7,13 @@ on:
 
 env:
   # BuildPC의 UNITY_APP_PATH 참고 - https://docs.unity3d.com/kr/2021.3/Manual/EditorCommandLineArguments.html
-  UNITY_APP_PATH: "D:/Unity/2020.3.25f1/Editor/Unity.exe"
-
-  # Build 추출물이 나올 경로(AOS, IOS) + 프로젝트명 ex - D:/Documents/Builds/Incremental
-  BUILD_PATH: D:/Documents/01.Projects/04.Working/01.Unity_Projects/01.Builds/
+  UNITY_APP_PATH:
 
   # 프로젝트명 ex - Incremental
-  REPO_NAME: 
+  REPO_NAME:
+
+  # Build 추출물이 나올 경로(AOS, IOS) + 프로젝트명 ex - ./프로잭트명/Build
+  BUILD_PATH:
 
 jobs:
   Checkout:
@@ -33,48 +33,38 @@ jobs:
           submodules: recursive
 
   Android_Build:
+    # 마지막 commit message에 build_aos or build_all이 있어야 작동하도록 함
+    if: contains(github.event.head_commit.message, 'build_aos') || contains(github.event.head_commit.message, 'build_all')
     needs: Checkout
+
     # 생성한 runner의 labels로 runner를 구분 참고 - https://docs.github.com/en/actions/using-jobs/choosing-the-runner-for-a-job
     runs-on: [ self-hosted, buildpc ]
     env:
-      # build log 파일 경로 입력 ex - ./프로젝트명/Build/AndroidBuildLog.txt
-      AND_LOG_PATH: 
-
-      # AOS build 추출물 경로 입력 ex - ./프로젝트명/Build/Android
-      AND_BUILD_PATH: 
+      # build finishversionsetting 파일 경로 입력 ex - ./프로젝트명/BuildInfo/finishversionsetting.txt
+      AND_SETTING_PATH:
 
     steps:
-      - name: Remove build folder, log file
+      - name: Refresh build files
         run: |
-          rm -rf $AND_BUILD_PATH
-          rm -f $AND_LOG_PATH
-      - name: Create build folder
-        run: mkdir -p $AND_BUILD_PATH
+          rm -rf $BUILD_PATH
+          rm -f $AND_SETTING_PATH
+          mkdir -p $BUILD_PATH
 
-      - name: Unity build AAB
+      - name: Unity build AAB, APK
         # 프로젝트명 주의, GITHUB_WORKSPACE - https://docs.github.com/ko/actions/learn-github-actions/variables#default-environment-variables
-        run: $UNITY_APP_PATH -logFile $AND_LOG_PATH -buildTarget Android -projectPath $GITHUB_WORKSPACE/프로젝트명 -executeMethod BuildScript.BuildAOSAAB
-
-      - name: Unity build APK
-        # 프로젝트명 주의
-        run: $UNITY_APP_PATH -logFile $AND_LOG_PATH -buildTarget Android -projectPath $GITHUB_WORKSPACE/프로젝트명 -executeMethod BuildScript.BuildAOSAPK
-
-      - name: Print build log
-        run: cat $AND_LOG_PATH
-
-      - name: Backup build
         run: |
-          current_time=$(date "+%Y.%m.%d-%H.%M.%S")
-          mkdir -p $BUILD_PATH/$current_time
-          mv $AND_BUILD_PATH $BUILD_PATH/$current_time
+          $UNITY_APP_PATH -logFile $BUILD_PATH/AndroidBuildLog.txt -buildTarget Android -projectPath $GITHUB_WORKSPACE/Incremental -executeMethod BuildScript.BuildAOSAAB
+          $UNITY_APP_PATH -logFile $BUILD_PATH/AndroidBuildLog.txt -buildTarget Android -projectPath $GITHUB_WORKSPACE/Incremental -executeMethod BuildScript.BuildAOSAPK
 
-      # scp - https://github.com/appleboy/scp-action
-      - name: copy file via ssh key
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SCP_HOST }}
-          username: ${{ secrets.SCP_USERNAME }}
-          password: ${{ secrets.SCP_PASSWORD }}
-          port: 22
-          source: $BUILD_PATH
-          target: ${{ secrets.SCP_LOCAL_OUTPUT_PASS }}
+  iOS_Build:
+    # 마지막 commit message에 build_ios or build_all이 있어야 작동하도록 함
+    if: always() && (contains(github.event.head_commit.message, 'build_ios') || contains(github.event.head_commit.message, 'build_all'))
+    needs: [Checkout, Android_Build]
+
+    # 생성한 runner의 labels로 runner를 구분 참고 - https://docs.github.com/en/actions/using-jobs/choosing-the-runner-for-a-job
+    runs-on: [ self-hosted, buildpc ]
+
+    steps:
+      - name: TODO
+        run: echo TODO
+
