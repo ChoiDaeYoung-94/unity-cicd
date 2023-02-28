@@ -4,12 +4,19 @@ unity CI/CD 관련 스크립트, 가이드 관리
 
 ## About directory files
 
-1. AssetDirectory
+1. .github
+   - 본 폴더의 내부 yml 파일들은 Github Actions에 사용되며 .github/workflows 의 경로는 절대 경로이다.
+     - workflows
+       - cicd.yml
+         - Github Actions yml script 틀이다.
+         - 해당 script의 주석에 간략한 설명이 있다.
+2. AssetDirectory
    - 본 폴더의 내부 파일들은 게임프로젝트 Assets 폴더 내부에 위치한다.
      - Editor ([참고](https://docs.unity3d.com/Manual/SpecialFolders.html))
        - BuildScript
-         - CLI, Github action으로 build 할 때 사용한다.
-2. RootDirectory
+         - CLI, Github Actions으로 빌드 할 때 사용한다.
+         - 해당 script의 주석에 간략한 설명이 있다.
+3. RootDirectory
    - 본 폴더의 내부 파일들은 게임프로젝트 root path에 위치한다.
      - BuildInfo
        - buildinfo
@@ -20,7 +27,7 @@ unity CI/CD 관련 스크립트, 가이드 관리
          - bundleVersionCode의 경우 게임프로젝트의 Google Console에서 App Bundle 탐색기의 버전 코드를 확인 후 최신 버전 코드를 입력하면 AOS에서 aab 빌드를 추출할 시 자동으로 1식 올라간다.
      - src
        - build.py ([참고](https://docs.unity3d.com/kr/2021.3/Manual/EditorCommandLineArguments.html))
-         - 본 repo의 guide로 세팅된 unity project일 경우 Github에서 clone 받아 build를 추출하는 CLI이다.
+         - 본 repo의 guide로 세팅된 unity project일 경우 Github에서 clone 받아 빌드하여 apk, aab를 추출하는 CLI이다.
          - BuildPC(remote server)에서 사용 시 빌드 추출물을 Local로 받을 수 있다.
          - build.py를 사용하기 위해서 필요한 package
            - [python](https://www.python.org/downloads/)
@@ -37,10 +44,14 @@ unity CI/CD 관련 스크립트, 가이드 관리
 
 ## Project settings
 
-1. 본 repo의 AssetDirectory, RootDirectory 폴더 안의 파일을 게임프로젝트로 옮긴다.
-      - AssetDirectory 폴더의 Editor 폴더를 게임프로젝트 Assets 폴더 내부에 위치한다. 
+1. 본 repo의 .github/workflows/cicd.yml 을 본 경로 그대로 게임프로젝트 root path에 위치한다. [참고](https://docs.github.com/en/actions/quickstart)
+2. 본 repo의 AssetDirectory, RootDirectory 폴더 안의 파일을 게임프로젝트로 옮긴다.
+      - AssetDirectory 폴더의 Editor 폴더를 게임프로젝트 Assets 폴더 내부에 위치한다.
       - RootDirectory 폴더의 BuildInfo, src 폴더를 게임프로젝트의 root path에 위치한다.
-2. 옮긴 파일을 게임프로젝트의 내용에 맞게 수정한다.
+3. 옮긴 파일을 게임프로젝트의 내용에 맞게 수정한다.
+      - cicd
+        - 본 script의 주석을 참고하여 빈 경로들을 기입한다.
+          - 기입 전 [Github Actions Settings](#github-actions-settings) 을 반드시 읽고 세팅한다.
       - BuildScript
         - 본 script의 주석을 참고하여 13~25 line의 내용을 기입한다.
       - buildinfo
@@ -60,6 +71,15 @@ CLI는 본 repo에 있는 build.py 를 사용한다.
 2. [About directory files](#About-directory-files)의 build.py 부분을 반드시 읽고 세팅한다.
 3. BuildPC(remote server), LocalPC를 SSH로 연결한다. [참고](https://learn.microsoft.com/ko-kr/windows-server/administration/openssh/openssh_install_firstuse)
 
+### Github Actions Settings
+
+Github acriton 관련 내용은 모두 [GitHub Actions Documentation](https://docs.github.com/actions) 을 참고한다.
+
+- 빌드하려는 게임프로젝트 root path에 .github/workflows/cicd.yml 이 반드시 존재해야 한다.
+- 게임 프로젝트 repo의 Settings에서 runner를 생성 한다. [참고](https://docs.github.com/en/actions/hosting-your-own-runners/adding-self-hosted-runners)
+- Actions secrets and variables 등록한다. [참고](https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
+ - 본 repo의 cicd.yml에서 secrets.GIT_ACCESS_TOKEN 부분처럼 민감할 수 있는 정보들을 담아둘 수 있다.
+
 ## Build
 
 | platform  | output   |
@@ -67,7 +87,7 @@ CLI는 본 repo에 있는 build.py 를 사용한다.
 | AOS       | apk, aab |
 | iOS       |   TODO   |
 
-build 추출물은 Project root/Build/AOS, Project root/Build/iOS 에 위치한다.
+빌드 추출물은 Project root/Build/AOS, Project root/Build/iOS 에 위치한다.
 
 ### Unity Scenario
 
@@ -80,7 +100,7 @@ build 추출물은 Project root/Build/AOS, Project root/Build/iOS 에 위치한�
 
 ### CLI Scenario
 
-build.py를 통해 build 시 aab, apk 모두 빌드된다.
+build.py를 통해 빌드 시 aab, apk 모두 빌드된다.
 
 terminal > python build.py > 매개변수 입력 > build
 
@@ -88,4 +108,17 @@ terminal > python build.py > 매개변수 입력 > build
 - 매개변수 중 띄어쓰기가 포함될 경우 " or ' 로 묶어주어야 한다.
 - BuildPC가 아닌 LocalPC에서 사용할 경우 "Enter IPv4 of your pc" 부분을 입력할 때 Skip을 입력한다.
 
-### Github Action Scenario
+### Github Actions Scenario
+
+main branch에 push 할 경우 Github Action이 작동하고 BuildPC에서 빌드를 진행한다.
+
+빌드 추출물의 경우 마지막 commit message에 따라 나뉠 수 있다. (build_all, build_aos, build_ios)
+
+- build_all 이 마지막 commit message에 포함되어 있을 경우
+  - apk, aab, ios output(TODO)를 추출한다.
+- build_aos 이 마지막 commit message에 포함되어 있을 경우
+  - apk, aab를 추출한다.
+- build_ios 이 마지막 commit message에 포함되어 있을 경우
+  - ios output(TODO)를 추출한다.
+
+** trigger 방식과 빌드 규칙 등은 [GitHub Actions Documentation](https://docs.github.com/actions)을 참고하여 수정하여도 무관하다. **
