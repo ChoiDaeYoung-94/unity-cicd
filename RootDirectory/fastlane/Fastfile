@@ -1,0 +1,14 @@
+lane :upload_aab do |options|
+
+appcenter_upload(
+    api_token: options[:api_token],
+    owner_type: "user",
+    owner_name: ENV["APPCENTER_OWNER_NAME"],
+    app_name: options[:app_name],
+    app_os: "Android",
+    file: options[:file],
+    destinations: ENV["APPCENTER_DISTRIBUTE_DESTINATIONS"],
+    notify_testers: ENV["APPCENTER_DISTRIBUTE_NOTIFY_TESTERS"],
+    release_notes: options[:release_notes]
+)
+end

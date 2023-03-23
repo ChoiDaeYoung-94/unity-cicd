@@ -81,4 +81,5 @@ jobs:
           echo "aabpath=$output" >> $GITHUB_ENV
       - name: Upload output to AppCenter
         working-directory: ${{ env.REPO_NAME }}
-        run: fastlane upload_aab file:"${{ env.aabpath }}" api_token:"${{ secrets.APP_CENTER_TOKEN }}" app_name:"Incremental_AOS" release_notes:"${{ github.event.comment.body }}"
+        # app_name은 Appcenter에서 사용하고 있는 appname 기입
+        run: fastlane upload_aab file:"${{ env.aabpath }}" api_token:"${{ secrets.APP_CENTER_TOKEN }}" app_name:"" release_notes:"${{ github.event.comment.body }}"
