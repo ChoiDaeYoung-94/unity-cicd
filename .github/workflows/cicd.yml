@@ -50,11 +50,11 @@ jobs:
           rm -f $AND_SETTING_PATH
           mkdir -p $BUILD_PATH
 
-      - name: Unity build AAB, APK
+        # AppCenter에 aab를 upload 시 apk로 다운로드 할 수 있기 때문에 CI에서 APK 빌드는 제외
+      - name: Unity build
         # 프로젝트명 주의, GITHUB_WORKSPACE - https://docs.github.com/ko/actions/learn-github-actions/variables#default-environment-variables
         run: |
           $UNITY_APP_PATH -logFile $BUILD_PATH/AndroidBuildLog.txt -buildTarget Android -projectPath $GITHUB_WORKSPACE/Incremental -executeMethod BuildScript.BuildAOSAAB
-          $UNITY_APP_PATH -logFile $BUILD_PATH/AndroidBuildLog.txt -buildTarget Android -projectPath $GITHUB_WORKSPACE/Incremental -executeMethod BuildScript.BuildAOSAPK
 
   iOS_Build:
     # 마지막 commit message에 build_ios or build_all이 있어야 작동하도록 함
@@ -68,33 +68,17 @@ jobs:
       - name: TODO
         run: echo TODO
 
+  # 참고 - https://github.com/microsoft/fastlane-plugin-appcenter
+  # TODO - ipa
   Deploy_AppCenter:
     needs: [Checkout, Android_Build, iOS_Build]
-
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, buildpc ]
     steps:
-      - uses: actions/checkout@v1
-      - name: set up JDK 1.8
-        uses: actions/setup-java@v1
-        with:
-          java-version: 1.8
-      - name: build release
-        run: ./gradlew assembleRelease
-      - name: upload apk to App Center
-        uses: wzieba/AppCenter-Github-Action@v1
-        with:
-          appName: ${{secrets.APP_CENTER_APPNAME}}
-          token: ${{secrets.APP_CENTER_TOKEN}}
-          group: ${{secrets.APP_CENTER_GROUP}}
-          file: $(find $BUILD_PATH -name "*.apk")
-          notifyTesters: true
-          debug: false
-      - name: upload aab to App Center
-        uses: wzieba/AppCenter-Github-Action@v1
-        with:
-          appName: ${{secrets.APP_CENTER_APPNAME}}
-          token: ${{secrets.APP_CENTER_TOKEN}}
-          group: ${{secrets.APP_CENTER_GROUP}}
-          file: $(find $BUILD_PATH -name "*.aab")
-          notifyTesters: true
-          debug: false
+      - name: Output path
+        run: |
+          output=$(find $GITHUB_WORKSPACE/$REPO_NAME/Build/AOS -name "*.aab")
+          echo $output
+          echo "aabpath=$output" >> $GITHUB_ENV
+      - name: Upload output to AppCenter
+        working-directory: ${{ env.REPO_NAME }}
+        run: fastlane upload_aab file:"${{ env.aabpath }}" api_token:"${{ secrets.APP_CENTER_TOKEN }}" app_name:"Incremental_AOS" release_notes:"${{ github.event.comment.body }}"
