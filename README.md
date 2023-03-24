@@ -25,6 +25,11 @@ unity CI/CD 관련 스크립트, 가이드 관리
          - weekNumber, buildNumber의 경우 BuildScript의 SetVersion 메서드의 내용으로 분석할 수 있으며 처음 기입 시 0으로 해도 무방하다.
          - weekNumber는 BuildScript의 DAY_CALCULATEVERSION 상수로부터 주차를 계산하고 buildNumber는 그 주차의 몇 번 빌드를 했는지를 의미한다.
          - bundleVersionCode의 경우 게임프로젝트의 Google Console에서 App Bundle 탐색기의 버전 코드를 확인 후 최신 버전 코드를 입력하면 AOS에서 aab 빌드를 추출할 시 자동으로 1식 올라간다.
+     - fastlane (참고 - [fastlane-plugin-appcenter](https://github.com/microsoft/fastlane-plugin-appcenter), [fastlane](https://docs.fastlane.tools/))
+       - 빌드 추출물을 Appcenter에 배포하기 위해 사용된다.
+       - 본 폴더는 폴더명 그대로 게임프로젝트 root path에 위치한다. 단, 폴더 내부에 있는 Gemfile, Gemfile.lock 은 폴더 밖(게임프로젝트 root path)으로 옮긴다.
+       - .env, Pluginfile, Gemfile, Gemfile.lock 은 fastlane-plugin-appcenter 세팅 시 자동으로 생성되며, .env를 통해 APPCENTER_OWNER_NAME, APPCENTER_DISTRIBUTE_DESTINATIONS(Group)), APPCENTER_DISTRIBUTE_NOTIFY_TESTERS 를 설정한다. 
+       - Fastfile은 yml에서 fastlane 명령어를 통해 실행할 수 있는 자동화 구성이다.
      - src
        - build.py ([참고](https://docs.unity3d.com/kr/2021.3/Manual/EditorCommandLineArguments.html))
          - 본 repo의 guide로 세팅된 unity project일 경우 Github에서 clone 받아 빌드하여 apk, aab를 추출하는 CLI이다.
@@ -48,6 +53,7 @@ unity CI/CD 관련 스크립트, 가이드 관리
 2. 본 repo의 AssetDirectory, RootDirectory 폴더 안의 파일을 게임프로젝트로 옮긴다.
       - AssetDirectory 폴더의 Editor 폴더를 게임프로젝트 Assets 폴더 내부에 위치한다.
       - RootDirectory 폴더의 BuildInfo, src 폴더를 게임프로젝트의 root path에 위치한다.
+        - fastlane의 폴더의 경우 [About directory files](#about-directory-files)를 참고한다.
 3. 옮긴 파일을 게임프로젝트의 내용에 맞게 수정한다.
       - cicd
         - 본 script의 주석을 참고하여 빈 경로들을 기입한다.
@@ -55,7 +61,7 @@ unity CI/CD 관련 스크립트, 가이드 관리
       - BuildScript
         - 본 script의 주석을 참고하여 13~25 line의 내용을 기입한다.
       - buildinfo
-        - [About directory files](#About-directory-files) 을 참고하여 기입한다.
+        - [About directory files](#about-directory-files) 을 참고하여 기입한다.
       - Keystore_ex
         - 본인이 사용하고 있는 keystore 파일로 대체한다.
 
@@ -78,7 +84,7 @@ Github acriton 관련 내용은 모두 [GitHub Actions Documentation](https://do
 - 빌드하려는 게임프로젝트 root path에 .github/workflows/cicd.yml 이 반드시 존재해야 한다.
 - 게임 프로젝트 repo의 Settings에서 runner를 생성 한다. [참고](https://docs.github.com/en/actions/hosting-your-own-runners/adding-self-hosted-runners)
 - Actions secrets and variables 등록한다. [참고](https://docs.github.com/en/actions/security-guides/automatic-token-authentication)
- - 본 repo의 cicd.yml에서 secrets.GIT_ACCESS_TOKEN 부분처럼 민감할 수 있는 정보들을 담아둘 수 있다.
+  - 본 repo의 cicd.yml에서 secrets.GIT_ACCESS_TOKEN, secrets.APP_CENTER_TOKEN 부분처럼 민감할 수 있는 정보들을 담아둘 수 있다.
 
 ## Build
 
@@ -88,6 +94,8 @@ Github acriton 관련 내용은 모두 [GitHub Actions Documentation](https://do
 | iOS       |   TODO   |
 
 빌드 추출물은 Project root/Build/AOS, Project root/Build/iOS 에 위치한다.
+
+AOS ouput의 경우 Github Actions Scenario에서는 Appcenter를 통해 업로드된 aab를 다운로드 할 수 있기 때문에 apk는 추출하지 않는다.
 
 ### Unity Scenario
 
@@ -112,13 +120,17 @@ terminal > python build.py > 매개변수 입력 > build
 
 main branch에 push 할 경우 Github Action이 작동하고 BuildPC에서 빌드를 진행한다.
 
-빌드 추출물의 경우 마지막 commit message에 따라 나뉠 수 있다. (build_all, build_aos, build_ios)
+빌드 추출물의 경우 마지막 commit message에 따라 나뉠 수 있다. (build_all, build_aos, build_ios, ci skip)
 
 - build_all 이 마지막 commit message에 포함되어 있을 경우
-  - apk, aab, ios output(TODO)를 추출한다.
+  - aab, ios output(TODO)를 추출한다.
 - build_aos 이 마지막 commit message에 포함되어 있을 경우
-  - apk, aab를 추출한다.
+  - aab를 추출한다.
 - build_ios 이 마지막 commit message에 포함되어 있을 경우
   - ios output(TODO)를 추출한다.
+- ci skip 이 마지막 commit message에 포함되어 있을 경우
+  - skip
+
+빌드 추출물은 Appcenter에 upload 되며 fastlane/.env의 APPCENTER_DISTRIBUTE_NOTIFY_TESTERS이 true라면 APPCENTER_DISTRIBUTE_DESTINATIONS(group)에 등록되어 있는 사용자에게 알림(e-mail)을 보낸다.
 
 ** trigger 방식과 빌드 규칙 등은 [GitHub Actions Documentation](https://docs.github.com/actions)을 참고하여 수정하여도 무관하다. **
