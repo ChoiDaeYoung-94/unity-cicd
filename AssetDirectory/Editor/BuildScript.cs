@@ -23,6 +23,8 @@ public class BuildScript : MonoBehaviour, IPostprocessBuildWithReport
     private const string KEYALIAS_NAME = "";
     // keyalias password
     private const string KEYALIAS_PASS = "";
+    private static string[] DEFINESYMBOLS_APK = { "" };
+    private static string[] DEFINESYMBOLS_AAB = { "" };
 
     // version 자동화 관련
     private const string VERSION = "1.0.";
@@ -53,11 +55,28 @@ public class BuildScript : MonoBehaviour, IPostprocessBuildWithReport
     /// <param name="form"></param>
     static void SetAOS(string form)
     {
+        if (!Directory.Exists("Build"))
+            Directory.CreateDirectory("Build");
+
         StreamWriter file = File.CreateText(form);
         file.Close();
 
         bool isAAB = form.Equals(CHECK_AOS_SETTING_AAB) ? true : false;
 
+        if (isAAB)
+            PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android, DEFINESYMBOLS_AAB);
+        else
+            PlayerSettings.SetScriptingDefineSymbolsForGroup(BuildTargetGroup.Android, DEFINESYMBOLS_APK);
+
+        CheckCI();
+    }
+
+    /// <summary>
+    /// AOS Build
+    /// </summary>
+    /// <param name="isAAB"></param>
+    static void BuildAOS(bool isAAB)
+    {
         EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Android, BuildTarget.Android);
 
         EditorUserBuildSettings.buildAppBundle = isAAB;
@@ -68,7 +87,7 @@ public class BuildScript : MonoBehaviour, IPostprocessBuildWithReport
         if (File.Exists(BUILDINFO_FINISHVERSIONSETTING))
             _str_buildInfo = GetVersion();
         else
-            _str_buildInfo = SetVersion(form: form);
+            _str_buildInfo = SetVersion(isAAB: isAAB);
 
         PlayerSettings.SetApplicationIdentifier(BuildTargetGroup.Android, IDENTIFIER);
         PlayerSettings.bundleVersion = $"{VERSION}{_str_buildInfo[0]}";
@@ -84,15 +103,6 @@ public class BuildScript : MonoBehaviour, IPostprocessBuildWithReport
         PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
         PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Android, ApiCompatibilityLevel.NET_4_6);
 
-        CheckCI();
-    }
-
-    /// <summary>
-    /// AOS Build
-    /// </summary>
-    /// <param name="isAAB"></param>
-    static void BuildAOS(bool isAAB)
-    {
         string filePath = CHECK_BUILD;
         StreamWriter file = File.CreateText(filePath);
         file.Close();
@@ -123,7 +133,7 @@ public class BuildScript : MonoBehaviour, IPostprocessBuildWithReport
     /// </summary>
     /// <param name="form"></param>
     /// <returns></returns>
-    static string[] SetVersion(string form)
+    static string[] SetVersion(bool isAAB)
     {
         if (!File.Exists(BUILDINFO_PATH))
             Debug.LogError("빌드 버전 정보가 존재하지 않습니다.");
@@ -141,13 +151,13 @@ public class BuildScript : MonoBehaviour, IPostprocessBuildWithReport
             buildNumber = Convert.ToInt32(buildInfo[1]) + 1;
 
         int bundleVersionCode = Convert.ToInt32(buildInfo[2]);
-        if (form.Equals(CHECK_AOS_SETTING_AAB))
+        if (isAAB)
             ++bundleVersionCode;
 
         File.WriteAllText(path: BUILDINFO_PATH, contents: string.Format("{0},{1},{2}", weekNumber, buildNumber, bundleVersionCode));
         buildInfo = File.ReadAllText(BUILDINFO_PATH).Split(',');
 
-        if (form.Equals(CHECK_AOS_SETTING_AAB))
+        if (isAAB)
         {
             StreamWriter file = File.CreateText(BUILDINFO_FINISHVERSIONSETTING);
             file.Close();
@@ -190,13 +200,13 @@ public class BuildScript : MonoBehaviour, IPostprocessBuildWithReport
             if (File.Exists(CHECK_AOS_SETTING_APK))
             {
                 File.Delete(CHECK_AOS_SETTING_APK);
-                BuildScript.BuildAOS(isAAB: false);
+                BuildAOS(isAAB: false);
             }
 
             if (File.Exists(CHECK_AOS_SETTING_AAB))
             {
                 File.Delete(CHECK_AOS_SETTING_AAB);
-                BuildScript.BuildAOS(isAAB: true);
+                BuildAOS(isAAB: true);
             }
         };
     }
