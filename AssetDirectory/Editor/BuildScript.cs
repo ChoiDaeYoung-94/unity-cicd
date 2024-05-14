@@ -112,7 +112,7 @@ public class BuildScript : MonoBehaviour, IPostprocessBuildWithReport
         string extension = isAAB == true ? ".aab" : ".apk";
         buildPlayerOptions.locationPathName = AOS_BUILD_PATH + "/" + $"{VERSION}{_str_buildInfo[0]}.{_str_buildInfo[1]}" + extension;
 
-        buildPlayerOptions.options = BuildOptions.None;
+        buildPlayerOptions.options = isAAB == true ? BuildOptions.CompressWithLz4HC : BuildOptions.CompressWithLz4;
         buildPlayerOptions.scenes = GetScenes();
         buildPlayerOptions.target = BuildTarget.Android;
         buildPlayerOptions.targetGroup = BuildTargetGroup.Android;

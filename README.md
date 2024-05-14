@@ -90,12 +90,12 @@ Github acriton 관련 내용은 모두 [GitHub Actions Documentation](https://do
 
 | platform  | output   |
 | --------- | -------- |
-| AOS       | apk, aab |
+| AOS       |   aab    |
 | iOS       |   TODO   |
 
 빌드 추출물은 Project root/Build/AOS, Project root/Build/iOS 에 위치한다.
 
-AOS ouput의 경우 Github Actions Scenario에서는 Appcenter를 통해 업로드된 aab를 다운로드 할 수 있기 때문에 apk는 추출하지 않는다.
+AOS ouput의 경우 Github Actions Scenario에서는 Appcenter를 통해 업로드된 aab를 apk로도 다운로드 할 수 있기 때문에 apk는 추출하지 않는다.
 
 ### Unity Scenario
 
